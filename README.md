@@ -25,7 +25,7 @@ apt install git -y && apt install bash -y
 
 Installation
 ```
-cd $Home && git clone https://github.com/y-nabeelxd/Termux-LocalHost && cd Termux-LocalHost && chmod +x install.sh && bash install.sh
+cd $Home && git clone https://github.com/y-nabeelxd/Termux-LocalHost && cd Termux-LocalHost && chmod +x install.sh && bash install.sh && cd $Home && rm -rf Termux-LocalHost
 ```
 
 **Usage**
