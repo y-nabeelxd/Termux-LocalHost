@@ -51,7 +51,19 @@ localhost() {
 }
 
 
-cat << EOF > "$PREFIX/bin/local"
+if [ -w "$PREFIX/bin" ]; then
+  BIN_DIR="$PREFIX/bin"
+elif [ -w "$HOME/bin" ]; then
+  BIN_DIR="$HOME/bin"
+  export PATH="$BIN_DIR:$PATH"
+  echo "Adding $BIN_DIR to PATH"
+else
+    echo "Neither $PREFIX/bin nor $HOME/bin are writable. Cannot proceed."
+    exit 1
+fi
+
+
+cat << EOF > "$BIN_DIR/local"
 #!/bin/bash
 
 LOCALHOST_PORT="$LOCALHOST_PORT"
@@ -99,11 +111,10 @@ localhost() {
   elif [ "\$1" == "stop" ]; then
     stop_localhost
   else
-    echo "Usage: local [start] [path] or local stop"
+    echo "Usage: local [start|stop] [path]"
     return 1
   fi
 }
-
 
 
 if [ "\$1" == "" ]; then
@@ -118,18 +129,23 @@ else
 fi
 EOF
 
-chmod +x "$PREFIX/bin/local"
+chmod +x "$BIN_DIR/local"
 
 if [ -f ~/.zshrc ]; then
   CONFIG_FILE=~/.zshrc
+  PROFILE_FILE=~/.zprofile
 else
   CONFIG_FILE=~/.bashrc
+  PROFILE_FILE=~/.bash_profile
 fi
 
-echo "alias localhost='$PREFIX/bin/local start'" >> "$CONFIG_FILE"
-echo "alias stoplocal='$PREFIX/bin/local stop'" >> "$CONFIG_FILE"
+echo "alias localhost='$BIN_DIR/local start'" >> "$CONFIG_FILE"
+echo "alias stoplocal='$BIN_DIR/local stop'" >> "$CONFIG_FILE"
+
 source "$CONFIG_FILE"
+echo "source $CONFIG_FILE" >> "$PROFILE_FILE"
 
 clear
 echo "Installation complete. 'localhost' and 'stoplocal' commands are now available."
-sleep 3
+echo "Remember to restart Termux or source your shell config file for changes to take effect in new sessions."
+sleep 5
