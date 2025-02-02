@@ -79,7 +79,7 @@ dir_exists() {
 start_server() {
   php -S localhost:"\$LOCALHOST_PORT" -t "\$1" > /dev/null 2>&1 &
   echo "Serving '\$1' on http://localhost:\$LOCALHOST_PORT"
-  echo "To stop: stoplocal"
+  echo "To stop: stoplocal or pkill -f 'php -S localhost:8080'"
 }
 
 stop_localhost() {
