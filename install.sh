@@ -24,7 +24,7 @@ start_server() {
     
     if ! nc -z localhost "$port" &>/dev/null; then
         if command -v termux-setup-storage &>/dev/null; then
-            if ! termux-fix-shebang "$BIN_DIR/local" &>/dev/null; then
+            if ! termux-fix-shebang "$BIN_DIR/localhost" &>/dev/null; then
                 echo "Attempting to open port $port..."
                 termux-chroot -e echo "Opening port $port" || true
             fi
@@ -33,7 +33,7 @@ start_server() {
     
     php -S localhost:"$port" -t "$1" > /dev/null 2>&1 &
     echo "Serving '$1' on http://localhost:$port"
-    echo "To stop: stoplocal"
+    echo "To stop the server, run: stoplocal"
     
     echo "$port" > /tmp/localhost_port
 }
@@ -56,26 +56,23 @@ stop_localhost() {
 }
 
 localhost() {
-    if [ -z "$1" ]; then
-        read -p "Please provide where you want to localhost (give me a path): " path
-        if ! dir_exists "$path"; then
-            echo "Error: Directory '$path' does not exist."
-            return 1
-        fi
-        start_server "$path"
-    elif [ "$1" == "start" ]; then
-        path="$2"
-        if ! dir_exists "$path"; then
-            echo "Error: Directory '$path' does not exist."
-            return 1
-        fi
-        start_server "$path"
-    elif [ "$1" == "stop" ]; then
+    if [ "$1" == "stop" ]; then
         stop_localhost
-    else
-        echo "Usage: localhost [start] [path] or localhost stop"
+        return
+    fi
+
+    if [ -z "$1" ]; then
+        echo "Please provide the directory path you want to serve."
+        echo "Example: localhost ~/my_website"
         return 1
     fi
+
+    if ! dir_exists "$1"; then
+        echo "Error: Directory '$1' does not exist."
+        return 1
+    fi
+
+    start_server "$1"
 }
 
 if [ -w "$PREFIX/bin" ]; then
@@ -91,7 +88,7 @@ fi
 
 LOCALHOST_PORT="8080"
 
-cat << EOF > "$BIN_DIR/local"
+cat << EOF > "$BIN_DIR/localhost"
 #!/bin/bash
 
 find_available_port() {
@@ -114,11 +111,11 @@ dir_exists() {
 }
 
 start_server() {
-    local port=\$(find_available_port "\$LOCALHOST_PORT")
+    local port=\$(find_available_port "$LOCALHOST_PORT")
     
     if ! nc -z localhost "\$port" &>/dev/null; then
         if command -v termux-setup-storage &>/dev/null; then
-            if ! termux-fix-shebang "$BIN_DIR/local" &>/dev/null; then
+            if ! termux-fix-shebang "$BIN_DIR/localhost" &>/dev/null; then
                 echo "Attempting to open port \$port..."
                 termux-chroot -e echo "Opening port \$port" || true
             fi
@@ -127,7 +124,7 @@ start_server() {
     
     php -S localhost:"\$port" -t "\$1" > /dev/null 2>&1 &
     echo "Serving '\$1' on http://localhost:\$port"
-    echo "To stop: stoplocal or pkill -f 'php -S localhost:'"
+    echo "To stop the server, run: stoplocal"
     
     echo "\$port" > /tmp/localhost_port
 }
@@ -149,42 +146,26 @@ stop_localhost() {
     fi
 }
 
-localhost() {
-    if [ -z "\$1" ]; then
-        read -p "Please provide where you want to localhost (give me a path): " path
-        if ! dir_exists "\$path"; then
-            echo "Error: Directory '\$path' does not exist."
-            return 1
-        fi
-        start_server "\$path"
-    elif [ "\$1" == "start" ]; then
-        path="\$2"
-        if ! dir_exists "\$path"; then
-            echo "Error: Directory '\$path' does not exist."
-            return 1
-        fi
-        start_server "\$path"
-    elif [ "\$1" == "stop" ]; then
-        stop_localhost
-    else
-        echo "Usage: local [start|stop] [path]"
-        return 1
-    fi
-}
-
-if [ "\$1" == "" ]; then
-    localhost
-elif [ "\$1" == "start" ]; then
-    localhost start "\$2"
-elif [ "\$1" == "stop" ]; then
-    stop_localhost
-else
-    echo "Usage: local [start|stop] [path]"
+if [ -z "\$1" ]; then
+    echo "Usage: localhost [path]"
+    echo "       localhost stop"
     exit 1
 fi
+
+if [ "\$1" == "stop" ]; then
+    stop_localhost
+    exit 0
+fi
+
+if ! dir_exists "\$1"; then
+    echo "Error: Directory '\$1' does not exist."
+    exit 1
+fi
+
+start_server "\$1"
 EOF
 
-chmod +x "$BIN_DIR/local"
+chmod +x "$BIN_DIR/localhost"
 
 if [ -f ~/.zshrc ]; then
     CONFIG_FILE=~/.zshrc
@@ -194,13 +175,16 @@ else
     PROFILE_FILE=~/.bash_profile
 fi
 
-echo "alias localhost='$BIN_DIR/local start'" >> "$CONFIG_FILE"
-echo "alias stoplocal='$BIN_DIR/local stop'" >> "$CONFIG_FILE"
+echo "alias stoplocal='localhost stop'" >> "$CONFIG_FILE"
 source "$CONFIG_FILE"
 echo "source $CONFIG_FILE" >> "$PROFILE_FILE"
 
 clear
 echo "Installation complete. 'localhost' and 'stoplocal' commands are now available."
+echo "Usage:"
+echo "  localhost /path/to/directory    # Start server for directory"
+echo "  stoplocal                       # Stop running server"
+echo ""
 echo "Features:"
 echo "- Automatically finds available port starting from 8080"
 echo "- Attempts to open port if not accessible"
