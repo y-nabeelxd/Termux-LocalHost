@@ -50,7 +50,7 @@ If you run `localhost` without arguments, it will show usage instructions.
 ## Uninstallation
 To completely remove Termux-LocalHost:
 ```
-cd $HOME && git clone https://github.com/y-nabeelxd/Termux-LocalHost && cd Termux-LocalHost && chmod +x uninstall.sh && bash uninstall.sh && cd $HOME && rm -rf Termux-LocalHost
+cd $HOME && git clone https://github.com/y-nabeelxd/Termux-LocalHost && cd Termux-LocalHost && stoplocal && clear && chmod +x uninstall.sh && bash uninstall.sh && cd $HOME && rm -rf Termux-LocalHost
 ```
 
 ## Important Notes
