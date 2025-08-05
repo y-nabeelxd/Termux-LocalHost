@@ -1,14 +1,14 @@
 #!/bin/bash
 
 # Termux-LocalHost Installer
-# Version: 2.3
+# Version: 2.4
 # Author: Y-Nabeel
 # GitHub: https://github.com/y-nabeelxd/Termux-LocalHost
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
 create_default_index() {
     local dir=$1
@@ -29,6 +29,8 @@ create_default_index() {
             --primary-color: #4285f4;
             --secondary-color: #f1f1f1;
             --border-color: #ddd;
+            --success-color: #2ecc71;
+            --error-color: #e74c3c;
         }
         
         [data-theme="dark"] {
@@ -37,6 +39,8 @@ create_default_index() {
             --primary-color: #8ab4f8;
             --secondary-color: #2d2d2d;
             --border-color: #444;
+            --success-color: #27ae60;
+            --error-color: #c0392b;
         }
         
         body {
@@ -46,7 +50,7 @@ create_default_index() {
             padding: 0;
             background-color: var(--bg-color);
             color: var(--text-color);
-            transition: background-color 0.3s, color 0.3s;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
         
         .container {
@@ -65,6 +69,7 @@ create_default_index() {
         h1 {
             color: var(--primary-color);
             margin-bottom: 0.5rem;
+            font-size: 2.5rem;
         }
         
         .theme-switch {
@@ -78,6 +83,13 @@ create_default_index() {
             cursor: pointer;
             display: flex;
             align-items: center;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+        
+        .theme-switch:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         
         .theme-icon {
@@ -85,38 +97,56 @@ create_default_index() {
             height: 20px;
             border-radius: 50%;
             margin: 0 5px;
-        }
-        
-        .sun {
-            background: #f39c12;
-        }
-        
-        .moon {
-            background: #3498db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
         }
         
         .info-box {
             background-color: var(--secondary-color);
             border: 1px solid var(--border-color);
-            border-radius: 5px;
-            padding: 1rem;
+            border-radius: 8px;
+            padding: 1.5rem;
             margin-bottom: 1.5rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .info-box h2 {
+            margin-top: 0;
+            color: var(--primary-color);
         }
         
         .directory-list {
             margin-top: 1.5rem;
+            background-color: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .directory-list h3 {
+            margin-top: 0;
+            color: var(--primary-color);
         }
         
         .directory-list ul {
             list-style-type: none;
             padding: 0;
+            margin: 0;
         }
         
         .directory-list li {
-            padding: 0.5rem 0;
+            padding: 0.75rem 0;
             border-bottom: 1px dashed var(--border-color);
             display: flex;
             align-items: center;
+            transition: background-color 0.2s ease;
+        }
+        
+        .directory-list li:hover {
+            background-color: rgba(0,0,0,0.05);
         }
         
         .directory-list li:last-child {
@@ -129,6 +159,7 @@ create_default_index() {
             display: flex;
             align-items: center;
             flex-grow: 1;
+            padding: 0.25rem 0;
         }
         
         .directory-list a:hover {
@@ -136,8 +167,10 @@ create_default_index() {
         }
         
         .file-icon {
-            margin-right: 8px;
-            font-size: 1.1em;
+            margin-right: 10px;
+            font-size: 1.2em;
+            width: 24px;
+            text-align: center;
         }
         
         footer {
@@ -146,16 +179,59 @@ create_default_index() {
             padding-top: 1rem;
             border-top: 1px solid var(--border-color);
             font-size: 0.9rem;
-            color: #777;
+            color: var(--text-color);
+            opacity: 0.8;
         }
         
         .loading {
             color: var(--primary-color);
             font-style: italic;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .loading:after {
+            content: "";
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--primary-color);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
         
         .error {
-            color: #e74c3c;
+            color: var(--error-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .success {
+            color: var(--success-color);
+        }
+        
+        code {
+            background-color: var(--secondary-color);
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        
+        .path-display {
+            background-color: var(--secondary-color);
+            padding: 0.75rem 1rem;
+            border-radius: 5px;
+            font-family: monospace;
+            word-break: break-all;
+            margin: 1rem 0;
         }
     </style>
 </head>
@@ -175,41 +251,106 @@ create_default_index() {
             <h2>Welcome to your local server</h2>
             <p>This is a default page because no index file was found in this directory.</p>
             <p>To replace this page, create an <code>index.html</code>, <code>index.php</code>, or <code>index.htm</code> file in this directory.</p>
+            
+            <div class="path-display">
+                <strong>Current directory:</strong><br>
+                <span id="current-path">Loading path...</span>
+            </div>
         </div>
         
         <div class="directory-list">
             <h3>Directory Contents:</h3>
             <div id="file-list">
-                <p class="loading">Loading directory contents...</p>
+                <p class="loading">Loading directory contents</p>
             </div>
         </div>
         
         <footer>
-            <p>Served by Termux-LocalHost | Port: <span id="port-number">PORT_PLACEHOLDER</span></p>
+            <p>Served by <strong>y-nabeelxd</strong> | Powered by Termux-LocalHost - <span id="server-info">localhost:<span id="port-number">PORT_PLACEHOLDER</span></span></p>
         </footer>
     </div>
     
     <script>
-        // List files in directory
-        function listFiles() {
-            const fileList = document.getElementById('file-list');
+        // System theme detection
+        function getSystemTheme() {
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        
+        // Toggle between light and dark theme
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            let newTheme;
             
-            fetch(window.location.pathname)
-            .then(response => {
+            if (currentTheme === 'auto') {
+                newTheme = getSystemTheme() === 'dark' ? 'light' : 'dark';
+            } else {
+                newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            }
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeButton(newTheme);
+        }
+        
+        // Update theme button appearance
+        function updateThemeButton(theme) {
+            const sun = document.querySelector('.sun');
+            const moon = document.querySelector('.moon');
+            
+            if (theme === 'dark') {
+                sun.style.opacity = '0.5';
+                moon.style.opacity = '1';
+            } else {
+                sun.style.opacity = '1';
+                moon.style.opacity = '0.5';
+            }
+        }
+        
+        // Check for saved theme preference
+        function checkTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'auto';
+            const html = document.documentElement;
+            
+            if (savedTheme === 'auto') {
+                const systemTheme = getSystemTheme();
+                html.setAttribute('data-theme', systemTheme);
+                updateThemeButton(systemTheme);
+            } else {
+                html.setAttribute('data-theme', savedTheme);
+                updateThemeButton(savedTheme);
+            }
+        }
+        
+        // Display current port number and path
+        function showServerInfo() {
+            const port = window.location.port || '80';
+            document.getElementById('port-number').textContent = port;
+            document.getElementById('current-path').textContent = window.location.pathname;
+        }
+        
+        // List files in directory
+        async function listFiles() {
+            const fileList = document.getElementById('file-list');
+            const currentPath = window.location.pathname;
+            
+            try {
+                const response = await fetch(currentPath);
                 if (!response.ok) {
                     throw new Error('Failed to load directory');
                 }
-                return response.text();
-            })
-            .then(html => {
+                
+                const html = await response.text();
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 const links = Array.from(doc.querySelectorAll('a'))
                     .filter(link => {
                         const href = link.getAttribute('href');
-                        return href && !['../', './'].includes(href) && 
+                        return href && 
+                               !['../', './'].includes(href) && 
                                !href.startsWith('?') && 
-                               !href.startsWith(window.location.pathname);
+                               !href.endsWith('index.html') &&
+                               !href.startsWith(currentPath);
                     });
 
                 if (links.length > 0) {
@@ -217,12 +358,12 @@ create_default_index() {
                     
                     links.forEach(link => {
                         const href = link.getAttribute('href');
-                        const text = link.textContent;
+                        const text = link.textContent.trim();
                         const isDirectory = href.endsWith('/');
                         const icon = isDirectory ? '📁' : '📄';
-                        const fullPath = window.location.pathname + 
-                                         (window.location.pathname.endsWith('/') ? '' : '/') + 
-                                         href;
+                        const fullPath = currentPath.endsWith('/') 
+                            ? currentPath + href 
+                            : currentPath + '/' + href;
                         
                         listHTML += `
                             <li>
@@ -236,48 +377,33 @@ create_default_index() {
                     listHTML += '</ul>';
                     fileList.innerHTML = listHTML;
                 } else {
-                    fileList.innerHTML = '<p>No files found in this directory</p>';
+                    fileList.innerHTML = '<p class="success">No files found in this directory</p>';
                 }
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error('Error:', error);
-                fileList.innerHTML = '<p class="error">Directory listing not available</p>';
-            });
-        }
-
-        // Toggle between light and dark theme
-        function toggleTheme() {
-            const html = document.documentElement;
-            const currentTheme = html.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-        }
-        
-        // Check for saved theme preference
-        function checkTheme() {
-            const savedTheme = localStorage.getItem('theme') || 'auto';
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            
-            let theme = savedTheme;
-            if (savedTheme === 'auto') {
-                theme = prefersDark ? 'dark' : 'light';
+                fileList.innerHTML = `
+                    <p class="error">
+                        <span class="file-icon">❌</span>
+                        Directory listing not available
+                    </p>
+                    <p>Try accessing this page directly from the server root.</p>`;
             }
-            
-            document.documentElement.setAttribute('data-theme', theme);
-        }
-        
-        // Display current port number
-        function showPort() {
-            const port = window.location.port || '80';
-            document.getElementById('port-number').textContent = port;
         }
         
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             checkTheme();
+            showServerInfo();
             listFiles();
-            showPort();
+            
+            // Watch for system theme changes
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                if (localStorage.getItem('theme') === 'auto') {
+                    const newTheme = e.matches ? 'dark' : 'light';
+                    document.documentElement.setAttribute('data-theme', newTheme);
+                    updateThemeButton(newTheme);
+                }
+            });
         });
     </script>
 </body>
@@ -408,7 +534,6 @@ dir_exists() {
 start_server() {
     local port=\$(find_available_port "$LOCALHOST_PORT")
     
-    # Create default index.html if needed
     if [ ! -f "\$1/index.html" ] && [ ! -f "\$1/index.php" ] && [ ! -f "\$1/index.htm" ]; then
         cat << 'EOHTML' > "\$1/index.html"
 <!DOCTYPE html>
@@ -424,6 +549,8 @@ start_server() {
             --primary-color: #4285f4;
             --secondary-color: #f1f1f1;
             --border-color: #ddd;
+            --success-color: #2ecc71;
+            --error-color: #e74c3c;
         }
         
         [data-theme="dark"] {
@@ -432,6 +559,8 @@ start_server() {
             --primary-color: #8ab4f8;
             --secondary-color: #2d2d2d;
             --border-color: #444;
+            --success-color: #27ae60;
+            --error-color: #c0392b;
         }
         
         body {
@@ -441,7 +570,7 @@ start_server() {
             padding: 0;
             background-color: var(--bg-color);
             color: var(--text-color);
-            transition: background-color 0.3s, color 0.3s;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
         
         .container {
@@ -460,6 +589,7 @@ start_server() {
         h1 {
             color: var(--primary-color);
             margin-bottom: 0.5rem;
+            font-size: 2.5rem;
         }
         
         .theme-switch {
@@ -473,6 +603,13 @@ start_server() {
             cursor: pointer;
             display: flex;
             align-items: center;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+        
+        .theme-switch:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         
         .theme-icon {
@@ -480,38 +617,56 @@ start_server() {
             height: 20px;
             border-radius: 50%;
             margin: 0 5px;
-        }
-        
-        .sun {
-            background: #f39c12;
-        }
-        
-        .moon {
-            background: #3498db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
         }
         
         .info-box {
             background-color: var(--secondary-color);
             border: 1px solid var(--border-color);
-            border-radius: 5px;
-            padding: 1rem;
+            border-radius: 8px;
+            padding: 1.5rem;
             margin-bottom: 1.5rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .info-box h2 {
+            margin-top: 0;
+            color: var(--primary-color);
         }
         
         .directory-list {
             margin-top: 1.5rem;
+            background-color: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .directory-list h3 {
+            margin-top: 0;
+            color: var(--primary-color);
         }
         
         .directory-list ul {
             list-style-type: none;
             padding: 0;
+            margin: 0;
         }
         
         .directory-list li {
-            padding: 0.5rem 0;
+            padding: 0.75rem 0;
             border-bottom: 1px dashed var(--border-color);
             display: flex;
             align-items: center;
+            transition: background-color 0.2s ease;
+        }
+        
+        .directory-list li:hover {
+            background-color: rgba(0,0,0,0.05);
         }
         
         .directory-list li:last-child {
@@ -524,6 +679,7 @@ start_server() {
             display: flex;
             align-items: center;
             flex-grow: 1;
+            padding: 0.25rem 0;
         }
         
         .directory-list a:hover {
@@ -531,8 +687,10 @@ start_server() {
         }
         
         .file-icon {
-            margin-right: 8px;
-            font-size: 1.1em;
+            margin-right: 10px;
+            font-size: 1.2em;
+            width: 24px;
+            text-align: center;
         }
         
         footer {
@@ -541,16 +699,59 @@ start_server() {
             padding-top: 1rem;
             border-top: 1px solid var(--border-color);
             font-size: 0.9rem;
-            color: #777;
+            color: var(--text-color);
+            opacity: 0.8;
         }
         
         .loading {
             color: var(--primary-color);
             font-style: italic;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .loading:after {
+            content: "";
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--primary-color);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
         
         .error {
-            color: #e74c3c;
+            color: var(--error-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .success {
+            color: var(--success-color);
+        }
+        
+        code {
+            background-color: var(--secondary-color);
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        
+        .path-display {
+            background-color: var(--secondary-color);
+            padding: 0.75rem 1rem;
+            border-radius: 5px;
+            font-family: monospace;
+            word-break: break-all;
+            margin: 1rem 0;
         }
     </style>
 </head>
@@ -570,41 +771,106 @@ start_server() {
             <h2>Welcome to your local server</h2>
             <p>This is a default page because no index file was found in this directory.</p>
             <p>To replace this page, create an <code>index.html</code>, <code>index.php</code>, or <code>index.htm</code> file in this directory.</p>
+            
+            <div class="path-display">
+                <strong>Current directory:</strong><br>
+                <span id="current-path">Loading path...</span>
+            </div>
         </div>
         
         <div class="directory-list">
             <h3>Directory Contents:</h3>
             <div id="file-list">
-                <p class="loading">Loading directory contents...</p>
+                <p class="loading">Loading directory contents</p>
             </div>
         </div>
         
         <footer>
-            <p>Served by Termux-LocalHost | Port: <span id="port-number">PORT_PLACEHOLDER</span></p>
+            <p>Served by <strong>y-nabeelxd</strong> | Powered by Termux-LocalHost - <span id="server-info">localhost:<span id="port-number">PORT_PLACEHOLDER</span></span></p>
         </footer>
     </div>
     
     <script>
-        // List files in directory
-        function listFiles() {
-            const fileList = document.getElementById('file-list');
+        // System theme detection
+        function getSystemTheme() {
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        
+        // Toggle between light and dark theme
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            let newTheme;
             
-            fetch(window.location.pathname)
-            .then(response => {
+            if (currentTheme === 'auto') {
+                newTheme = getSystemTheme() === 'dark' ? 'light' : 'dark';
+            } else {
+                newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            }
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeButton(newTheme);
+        }
+        
+        // Update theme button appearance
+        function updateThemeButton(theme) {
+            const sun = document.querySelector('.sun');
+            const moon = document.querySelector('.moon');
+            
+            if (theme === 'dark') {
+                sun.style.opacity = '0.5';
+                moon.style.opacity = '1';
+            } else {
+                sun.style.opacity = '1';
+                moon.style.opacity = '0.5';
+            }
+        }
+        
+        // Check for saved theme preference
+        function checkTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'auto';
+            const html = document.documentElement;
+            
+            if (savedTheme === 'auto') {
+                const systemTheme = getSystemTheme();
+                html.setAttribute('data-theme', systemTheme);
+                updateThemeButton(systemTheme);
+            } else {
+                html.setAttribute('data-theme', savedTheme);
+                updateThemeButton(savedTheme);
+            }
+        }
+        
+        // Display current port number and path
+        function showServerInfo() {
+            const port = window.location.port || '80';
+            document.getElementById('port-number').textContent = port;
+            document.getElementById('current-path').textContent = window.location.pathname;
+        }
+        
+        // List files in directory
+        async function listFiles() {
+            const fileList = document.getElementById('file-list');
+            const currentPath = window.location.pathname;
+            
+            try {
+                const response = await fetch(currentPath);
                 if (!response.ok) {
                     throw new Error('Failed to load directory');
                 }
-                return response.text();
-            })
-            .then(html => {
+                
+                const html = await response.text();
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 const links = Array.from(doc.querySelectorAll('a'))
                     .filter(link => {
                         const href = link.getAttribute('href');
-                        return href && !['../', './'].includes(href) && 
+                        return href && 
+                               !['../', './'].includes(href) && 
                                !href.startsWith('?') && 
-                               !href.startsWith(window.location.pathname);
+                               !href.endsWith('index.html') &&
+                               !href.startsWith(currentPath);
                     });
 
                 if (links.length > 0) {
@@ -612,12 +878,12 @@ start_server() {
                     
                     links.forEach(link => {
                         const href = link.getAttribute('href');
-                        const text = link.textContent;
+                        const text = link.textContent.trim();
                         const isDirectory = href.endsWith('/');
                         const icon = isDirectory ? '📁' : '📄';
-                        const fullPath = window.location.pathname + 
-                                         (window.location.pathname.endsWith('/') ? '' : '/') + 
-                                         href;
+                        const fullPath = currentPath.endsWith('/') 
+                            ? currentPath + href 
+                            : currentPath + '/' + href;
                         
                         listHTML += `
                             <li>
@@ -631,48 +897,33 @@ start_server() {
                     listHTML += '</ul>';
                     fileList.innerHTML = listHTML;
                 } else {
-                    fileList.innerHTML = '<p>No files found in this directory</p>';
+                    fileList.innerHTML = '<p class="success">No files found in this directory</p>';
                 }
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error('Error:', error);
-                fileList.innerHTML = '<p class="error">Directory listing not available</p>';
-            });
-        }
-
-        // Toggle between light and dark theme
-        function toggleTheme() {
-            const html = document.documentElement;
-            const currentTheme = html.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-        }
-        
-        // Check for saved theme preference
-        function checkTheme() {
-            const savedTheme = localStorage.getItem('theme') || 'auto';
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            
-            let theme = savedTheme;
-            if (savedTheme === 'auto') {
-                theme = prefersDark ? 'dark' : 'light';
+                fileList.innerHTML = `
+                    <p class="error">
+                        <span class="file-icon">❌</span>
+                        Directory listing not available
+                    </p>
+                    <p>Try accessing this page directly from the server root.</p>`;
             }
-            
-            document.documentElement.setAttribute('data-theme', theme);
-        }
-        
-        // Display current port number
-        function showPort() {
-            const port = window.location.port || '80';
-            document.getElementById('port-number').textContent = port;
         }
         
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             checkTheme();
+            showServerInfo();
             listFiles();
-            showPort();
+            
+            // Watch for system theme changes
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                if (localStorage.getItem('theme') === 'auto') {
+                    const newTheme = e.matches ? 'dark' : 'light';
+                    document.documentElement.setAttribute('data-theme', newTheme);
+                    updateThemeButton(newTheme);
+                }
+            });
         });
     </script>
 </body>
